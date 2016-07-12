@@ -1,0 +1,12 @@
+{
+    "hipchat" : {
+        "endpoint" : "https://team.hipchat.com/v2",
+        "token" : "abcdefghijklmnopqrstuvwxyz"
+    },
+    "mysql" : {
+        "host" : "localhost",
+        "user" : "username",
+        "password" : "password",
+        "database" : "database"
+    }
+}
