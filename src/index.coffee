@@ -37,10 +37,15 @@ encounterCommand = (author, room, pokemon, location = "") ->
         if err?
             return hipchatApi.rooms.notification(room.id, "Sorry `#{pokemon}` is not a valid pokemon", "red")
 
-        if info.isCommon
-            hipchatApi.rooms.notification(room.id, "@#{author.mention_name} encountered a wild #{info.name}, but it is considered common here", "green")
-        else
-            hipchatApi.rooms.notification(room.id, "@here @#{author.mention_name} encountered a wild #{info.name}", "green")
+        pokemonGo.pokedex.getRarity(info.id, room.id, (err, isCommon) ->
+            if err?
+                return hipchatApi.rooms.notification(room.id, "Sorry `#{pokemon}` is not a valid pokemon", "red")
+
+            if isCommon
+                hipchatApi.rooms.notification(room.id, "@#{author.mention_name} encountered a wild #{info.name}, but it is considered common here", "green")
+            else
+                hipchatApi.rooms.notification(room.id, "@here @#{author.mention_name} encountered a wild #{info.name}", "green")
+        )
     )
 
 teamDispatch = (author, room, command, name) ->
@@ -85,11 +90,10 @@ pokedexCommand = (room, command, identifier, rarityLevel) ->
         when "show"
             pokemonGo.pokedex.find(identifier, (err, info) ->
                 return invalidIdentifier(err) if err?
-                rarity = if info.isCommon then "common" else "rare"
-                type = info.types[0]
+                type = info.types[0].trim()
                 if info.types[1]?
                     type += "/#{info.types[1]}"
-                hipchatApi.rooms.notification(room.id, "##{info.id} #{info.name} is a #{rarity} #{type} type Pokémon", "purple")
+                hipchatApi.rooms.notification(room.id, "##{info.id} #{info.name} is a #{type} type Pokémon", "purple")
             )
 
         when "set-common", "set-rare"

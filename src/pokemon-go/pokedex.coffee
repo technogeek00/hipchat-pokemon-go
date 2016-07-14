@@ -49,6 +49,19 @@ module.exports = Pokedex = {
             )
         )
 
+    getRarity : (identifier, home, cb) ->
+        Pokedex.find(identifier, (err, info) ->
+            return cb(err) if err?
+            database.query("SELECT * FROM `encounter_notification` WHERE pokemon_id = ? AND room_id = ?", [info.id, home], (err, rows) ->
+                return cb(err) if err?
+                # default to rare
+                isCommon = false
+                if rows.length > 0
+                    isCommon = rows[0].notify is 0
+                cb(null, isCommon)
+            )
+        )
+
     encounter : (identifier, home, location, cb) ->
         Pokedex.find(identifier, (err, info) ->
             return cb(err) if err?
