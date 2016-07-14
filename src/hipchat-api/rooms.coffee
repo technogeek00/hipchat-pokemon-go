@@ -8,7 +8,7 @@ module.exports = {
         unless colors[color]?
             color = colors.default
 
-        service.post("#{pathPrefix}/#{roomId}/notification", {
+        service.post("#{pathPrefix}/#{roomId}/notification", roomId, {
             message_format : type,
             color : color,
             message : message

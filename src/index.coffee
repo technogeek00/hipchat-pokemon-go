@@ -15,7 +15,7 @@ helpCommand = (room, vanity) ->
     message = [
         "<b>Team Commands</b>"
         "<code>#{vanity} team &lt;team&gt; list</code> - List all the members of the named team"
-        "<code>#{vanity} team &lt;team&gt; rally</code> - Rally the members of the named team"
+#        "<code>#{vanity} team &lt;team&gt; rally</code> - Rally the members of the named team"
         "<code>#{vanity} team &lt;team&gt; join</code> - Join the named team. (This will cause you to leave any previously joined teams)"
         ""
         "<b>Encounter Command</b>"
@@ -32,12 +32,14 @@ helpCommand = (room, vanity) ->
     ].join('<br>\n')
     hipchatApi.rooms.notification(room.id, message, null, type = "html")
 
-encounterCommand = (author, room, pokemon) ->
-    pokemonGo.pokedex.encounter(pokemon, (err, info) ->
+encounterCommand = (author, room, pokemon, location = "") ->
+    pokemonGo.pokedex.encounter(pokemon, room.id, location, (err, info) ->
         if err?
             return hipchatApi.rooms.notification(room.id, "Sorry `#{pokemon}` is not a valid pokemon", "red")
 
-        unless info.isCommon
+        if info.isCommon
+            hipchatApi.rooms.notification(room.id, "@#{author.mention_name} encountered a wild #{info.name}, but it is considered common here", "green")
+        else
             hipchatApi.rooms.notification(room.id, "@here @#{author.mention_name} encountered a wild #{info.name}", "green")
     )
 
@@ -55,13 +57,15 @@ teamDispatch = (author, room, command, name) ->
         when "rally"
             pokemonGo.teams.getMembers(name, (err, info, members) ->
                 return invalidTeam(err) if err?
-                members = ("@#{member.mention}" for member in members).join(" ")
+                members = ("@#{member.mention}" for member in members when member.home is room.id).join(" ")
                 hipchatApi.rooms.notification(room.id, "Team #{info.name} Unite! #{members}", "purple")
             )
         when "join"
-            pokemonGo.teams.join(name, author, (err, info) ->
-                return invalidTeam(err) if err?
-                hipchatApi.rooms.notification(room.id, "Welcome #{author.name} to Team #{info.name}!", "green")
+            pokemonGo.trainers.add(author.id, author.name, author.mention_name, room.id, (err, trainer) ->
+                pokemonGo.teams.join(name, trainer, (err, info) ->
+                    return invalidTeam(err) if err?
+                    hipchatApi.rooms.notification(room.id, "Welcome #{trainer.name} to Team #{info.name}!", "green")
+                )
             )
 
 pokedexCommand = (room, command, identifier, rarityLevel) ->
@@ -89,7 +93,7 @@ pokedexCommand = (room, command, identifier, rarityLevel) ->
             )
 
         when "set-common", "set-rare"
-            pokemonGo.pokedex.setRarity(identifier, command is "set-common", (err, info, isCommon) ->
+            pokemonGo.pokedex.setRarity(identifier, room.id, command is "set-common", (err, info, isCommon) ->
                 return invalidIdentifier() if err?
                 rarity = if info.isCommon then "common" else "rare"
                 hipchatApi.rooms.notification(room.id, "##{info.id} #{info.name} is now considered #{rarity}", "purple")
@@ -112,8 +116,9 @@ app.post('/api/v1/room-message', (req, res) ->
             [name, command] = args
             teamDispatch(author, room, command, name)
         when "encounter"
-            [name] = args
-            encounterCommand(author, room, name)
+            [name, location...] = args
+            location = location.join(' ')
+            encounterCommand(author, room, name, location)
         when "pokedex"
             [command, name, rarity] = args
             pokedexCommand(room, command, name, rarity)
@@ -126,4 +131,4 @@ app.post('/api/v1/room-message', (req, res) ->
     })
 )
 
-app.listen(80)
+app.listen(3000)
