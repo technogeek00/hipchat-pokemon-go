@@ -19,7 +19,7 @@ helpCommand = (room, vanity) ->
         "<code>#{vanity} team &lt;team&gt; join</code> - Join the named team. (This will cause you to leave any previously joined teams)"
         ""
         "<b>Encounter Command</b>"
-        "<code>#{vanity} encounter &lt;pokemon-id&gt;</code> - Note that a pokemon was encountered, triggers room messages based on rarity"
+        "<code>#{vanity} encounter &lt;pokemon-id&gt; &lt;location&gt;</code> - Note that a pokemon was encountered, triggers room messages based on rarity. Location is optional"
         ""
         "<b>Pokedex Commands</b>"
         "<code>#{vanity} pokedex show &lt;pokemon-id&gt;</code> - Shows the known information about the named Pokemon"
@@ -33,19 +33,21 @@ helpCommand = (room, vanity) ->
     hipchatApi.rooms.notification(room.id, message, null, type = "html")
 
 encounterCommand = (author, room, pokemon, location = "") ->
-    pokemonGo.pokedex.encounter(pokemon, room.id, location, (err, info) ->
+    pokemonGo.encounters.saw(pokemon, room.id, location, (err, info) ->
         if err?
             return hipchatApi.rooms.notification(room.id, "Sorry `#{pokemon}` is not a valid pokemon", "red")
 
-        pokemonGo.pokedex.getRarity(info.id, room.id, (err, isCommon) ->
-            if err?
-                return hipchatApi.rooms.notification(room.id, "Sorry `#{pokemon}` is not a valid pokemon", "red")
+        pokemon = info.pokemon
+        message = "@#{author.mention_name} encountered a wild #{pokemon.name}"
+        if location.length > 0
+            message = "#{message} near #{location}"
 
-            if isCommon
-                hipchatApi.rooms.notification(room.id, "@#{author.mention_name} encountered a wild #{info.name}, but it is considered common here", "green")
-            else
-                hipchatApi.rooms.notification(room.id, "@here @#{author.mention_name} encountered a wild #{info.name}", "green")
-        )
+        if info.notify
+            message = "@here #{message}"
+        else
+            message = "#{message}, but it is considered common here"
+
+        hipchatApi.rooms.notification(room.id, message, "green")
     )
 
 teamDispatch = (author, room, command, name) ->
@@ -90,17 +92,18 @@ pokedexCommand = (room, command, identifier, rarityLevel) ->
         when "show"
             pokemonGo.pokedex.find(identifier, (err, info) ->
                 return invalidIdentifier(err) if err?
-                type = info.types[0].trim()
-                if info.types[1]?
+                type = info.types[0]
+                if info.types[1]?.length > 0
                     type += "/#{info.types[1]}"
                 hipchatApi.rooms.notification(room.id, "##{info.id} #{info.name} is a #{type} type Pokémon", "purple")
             )
 
         when "set-common", "set-rare"
-            pokemonGo.pokedex.setRarity(identifier, room.id, command is "set-common", (err, info, isCommon) ->
+            pokemonGo.encounters.setNotify(identifier, room.id, command is "set-rare", (err, info) ->
                 return invalidIdentifier(err) if err?
-                rarity = if info.isCommon then "common" else "rare"
-                hipchatApi.rooms.notification(room.id, "##{info.id} #{info.name} is now considered #{rarity}", "purple")
+                pokemon = info.pokemon
+                rarity = if info.notify then "rare" else "common"
+                hipchatApi.rooms.notification(room.id, "##{pokemon.id} #{pokemon.name} is now considered #{rarity}", "purple")
             )
 
 app.post('/api/v1/room-message', (req, res) ->

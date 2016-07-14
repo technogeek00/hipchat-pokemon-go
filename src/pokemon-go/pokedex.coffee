@@ -9,7 +9,6 @@ apiObject = (infoRow) ->
             infoRow.type1
             infoRow.type2
         ]
-        isCommon : infoRow.common is 1
     }
 
 module.exports = Pokedex = {
@@ -29,45 +28,5 @@ module.exports = Pokedex = {
 
             pokemon = (apiObject(row) for row in rows)
             cb(null, pokemon)
-        )
-
-    setRarity : (identifier, home, isCommon, cb) ->
-        Pokedex.find(identifier, (err, info) ->
-            return cb(err) if err?
-            database.query("SELECT * FROM `encounter_notification` WHERE pokemon_id = ? AND room_id = ?", [info.id, home], (err, rows) ->
-                return cb(err) if err?
-
-                lastCallback = (err, rows) ->
-                    return cb(err) if err?
-                    info.isCommon = isCommon
-                    cb(null, info)
-
-                if rows.length > 0
-                    database.query("UPDATE `encounter_notification` SET notify = ? WHERE pokemon_id = ? AND room_id = ?", [isCommon, info.id, home], lastCallback)
-                else
-                    database.query("INSERT INTO `encounter_notification` (pokemon_id, room_id, notify) VALUES (?, ?, ?)", [info.id, home, isCommon], lastCallback)
-            )
-        )
-
-    getRarity : (identifier, home, cb) ->
-        Pokedex.find(identifier, (err, info) ->
-            return cb(err) if err?
-            database.query("SELECT * FROM `encounter_notification` WHERE pokemon_id = ? AND room_id = ?", [info.id, home], (err, rows) ->
-                return cb(err) if err?
-                # default to rare
-                isCommon = false
-                if rows.length > 0
-                    isCommon = rows[0].notify is 0
-                cb(null, isCommon)
-            )
-        )
-
-    encounter : (identifier, home, location, cb) ->
-        Pokedex.find(identifier, (err, info) ->
-            return cb(err) if err?
-            database.query("INSERT INTO `encounters` (sighting_id, pokemon_id, room_id, time, location) VALUES (NULL, ?, ?, NULL, ?)", [info.id, home, location], (err) ->
-                return cb(err) if err?
-                cb(null, info)
-            )
         )
 }
