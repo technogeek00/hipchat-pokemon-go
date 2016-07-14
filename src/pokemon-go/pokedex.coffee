@@ -34,7 +34,7 @@ module.exports = Pokedex = {
     setRarity : (identifier, home, isCommon, cb) ->
         Pokedex.find(identifier, (err, info) ->
             return cb(err) if err?
-            database.query("SELECT * FROM `encounter_notification` WHERE pokemon_id = ? AND room_id = ?", (err, rows) ->
+            database.query("SELECT * FROM `encounter_notification` WHERE pokemon_id = ? AND room_id = ?", [info.id, home], (err, rows) ->
                 return cb(err) if err?
 
                 lastCallback = (err, rows) ->

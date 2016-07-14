@@ -70,7 +70,7 @@ teamDispatch = (author, room, command, name) ->
 
 pokedexCommand = (room, command, identifier, rarityLevel) ->
     invalidIdentifier = ->
-        hipchatApi.rooms.notification(room.id, "Sorry `#{name}` is not a valid pokemon name", "red")
+        hipchatApi.rooms.notification(room.id, "Sorry `#{identifier}` is not a valid pokemon name", "red")
 
     switch command
         when "list"
@@ -84,7 +84,7 @@ pokedexCommand = (room, command, identifier, rarityLevel) ->
 
         when "show"
             pokemonGo.pokedex.find(identifier, (err, info) ->
-                return invalidIdentifier() if err?
+                return invalidIdentifier(err) if err?
                 rarity = if info.isCommon then "common" else "rare"
                 type = info.types[0]
                 if info.types[1]?
@@ -94,7 +94,7 @@ pokedexCommand = (room, command, identifier, rarityLevel) ->
 
         when "set-common", "set-rare"
             pokemonGo.pokedex.setRarity(identifier, room.id, command is "set-common", (err, info, isCommon) ->
-                return invalidIdentifier() if err?
+                return invalidIdentifier(err) if err?
                 rarity = if info.isCommon then "common" else "rare"
                 hipchatApi.rooms.notification(room.id, "##{info.id} #{info.name} is now considered #{rarity}", "purple")
             )
