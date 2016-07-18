@@ -53,5 +53,4 @@ module.exports = class Message extends ApiObject
         if @_state.card?
             obj.card = @_state.card.toApiObject()
 
-        console.log(obj)
         return obj

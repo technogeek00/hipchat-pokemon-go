@@ -22,12 +22,15 @@ listTeamMembers = (room, teamName) ->
 
 joinTeam = (author, room, teamName) ->
     trainerResolved = (err, trainer) ->
-        pokemonGo.teams.join(name, trainer, teamJoined)
+        pokemonGo.teams.join(teamName, trainer, teamJoined)
 
-    teamJoined = (err, team) ->
+    teamJoined = (err, result) ->
         return invalidTeam(room, teamName) if err?
 
-        message = new hipchatApi.messages.Message("Welcome <b>#{trainer.name}</b> to Team #{info.name}!", "html")
+        team = result.team
+        trainer = result.trainer
+
+        message = new hipchatApi.messages.Message("Welcome <b>#{trainer.name}</b> to Team #{team.name}!", "html")
         message.setColor(hipchatApi.messages.Colors.green)
 
         hipchatApi.rooms.notification(room.id, message)

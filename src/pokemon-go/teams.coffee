@@ -47,7 +47,10 @@ module.exports = Teams = {
             return cb(err) if err?
             database.query("UPDATE trainers SET team = ? WHERE user_id = ?", [name, trainer.id], (err, rows) ->
                 return cb(err) if err?
-                cb(null, info)
+                cb(null, {
+                    team : info
+                    trainer : trainer
+                })
             )
         )
 }

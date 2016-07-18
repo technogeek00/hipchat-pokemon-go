@@ -18,7 +18,9 @@ module.exports = (author, room, pokemon, location = "") ->
 
         card = helpers.createPokemonCard(pokemon, text)
         card.addAttribute(new hipchatApi.messages.Attribute("Spotted By", author.name))
-        card.addAttribute(new hipchatApi.messages.Attribute("Location", location, hipchatApi.messages.Attribute.Styles.green))
+
+        if location.length > 0
+            card.addAttribute(new hipchatApi.messages.Attribute("Location", location, hipchatApi.messages.Attribute.Styles.green))
 
         message.setCard(card)
         message.setNotify(result.notify)
