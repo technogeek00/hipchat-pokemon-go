@@ -6,7 +6,7 @@ helpers = require('./helpers')
 module.exports = (author, room, pokemon, location = "") ->
     resolvedPokemon = (err, result) ->
         if err?
-            return helpers.notifyInvalidPokemon(room, identifier)
+            return helpers.notifyInvalidPokemon(room, pokemon)
 
         pokemon = result.pokemon
 
