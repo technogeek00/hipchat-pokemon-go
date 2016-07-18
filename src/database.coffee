@@ -1,6 +1,6 @@
 mysql = require('mysql')
 config = require('../config.json').mysql
-return
+
 connectionPool = mysql.createPool({
     connectionLimit : 10,
     host : config.host,

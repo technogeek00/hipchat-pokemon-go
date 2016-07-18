@@ -1,4 +1,4 @@
 module.exports = {
-    colors : require('./colors')
     rooms : require('./rooms')
+    messages : require('./messages')
 }

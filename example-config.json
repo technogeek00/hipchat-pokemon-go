@@ -1,7 +1,9 @@
 {
     "hipchat" : {
         "endpoint" : "https://team.hipchat.com/v2",
-        "token" : "abcdefghijklmnopqrstuvwxyz"
+        "tokens" : {
+            "<room-id>" : "<room-token>"
+        }
     },
     "mysql" : {
         "host" : "localhost",

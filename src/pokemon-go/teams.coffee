@@ -31,7 +31,7 @@ module.exports = Teams = {
     getMembers : (name, cb) ->
         Teams.get(name, (err, info) ->
             return cb(err) if err?
-            database.query("SELECT name, mention, home FROM `trainers` WHERE `team` = ?", [info.name], (err, rows) ->
+            database.query("SELECT name, mention, home FROM `trainers` WHERE `team` = ? ORDER BY name", [info.name], (err, rows) ->
                 return cb(err) if err?
                 members = ({
                     name : row.name,
