@@ -17,7 +17,7 @@ module.exports = Helpers = {
         picture = new hipchatApi.messages.Icon("http://assets.pokemon.com/assets/cms2/img/pokedex/detail/#{paddedId}.png")
         
         card = new hipchatApi.messages.cards.Activity("#{pokemon.name} ##{paddedId}", text)
-        card.setDescription("The real pokemon description will go here")
+        card.setDescription(pokemon.description)
         card.setIcon(picture)
         card.setActivityIcon(sprite)
         card.setUrl("http://www.pokemon.com/us/pokedex/#{paddedId}")

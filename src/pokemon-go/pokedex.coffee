@@ -4,6 +4,7 @@ apiObject = (infoRow) ->
     return {
         id : infoRow.pokemon_id
         name : infoRow.name
+        description : infoRow.description
         image : infoRow.image
         types : [
             infoRow.type1
